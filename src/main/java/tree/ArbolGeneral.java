@@ -14,16 +14,16 @@ import java.util.function.Function;
  * Politica de eliminacion: eliminar(id) se rechaza si el nodo tiene hijos;
  * eliminarConDescendientes(id) borra todo el subarbol.
  */
-public class Tree<T> {
+public class ArbolGeneral<T> {
 
-    private TreeNode<T> root;
+    private NodoArbol<T> root;
     private final Function<T, String> idExtractor;
 
-    public Tree(Function<T, String> idExtractor) {
+    public ArbolGeneral(Function<T, String> idExtractor) {
         this.idExtractor = idExtractor;
     }
 
-    public TreeNode<T> getRoot() {
+    public NodoArbol<T> getRoot() {
         return root;
     }
 
@@ -34,28 +34,28 @@ public class Tree<T> {
     /** Define la raiz. Solo es posible si el arbol esta vacio. */
     public boolean setRoot(T data) {
         if (root != null) return false;
-        root = new TreeNode<>(data);
+        root = new NodoArbol<>(data);
         return true;
     }
 
     /** Inserta un dato como hijo del nodo con id idPadre. */
     public boolean insertar(String idPadre, T data) {
-        TreeNode<T> padre = buscar(idPadre);
+        NodoArbol<T> padre = buscar(idPadre);
         if (padre == null || buscar(idExtractor.apply(data)) != null) return false;
-        padre.addChild(new TreeNode<>(data));
+        padre.addChild(new NodoArbol<>(data));
         return true;
     }
 
     /** Busca un nodo por id con recorrido en profundidad. */
-    public TreeNode<T> buscar(String id) {
+    public NodoArbol<T> buscar(String id) {
         return buscar(root, id);
     }
 
-    private TreeNode<T> buscar(TreeNode<T> nodo, String id) {
+    private NodoArbol<T> buscar(NodoArbol<T> nodo, String id) {
         if (nodo == null) return null;
         if (idExtractor.apply(nodo.getData()).equals(id)) return nodo;
-        for (TreeNode<T> hijo : nodo.getChildren()) {
-            TreeNode<T> r = buscar(hijo, id);
+        for (NodoArbol<T> hijo : nodo.getChildren()) {
+            NodoArbol<T> r = buscar(hijo, id);
             if (r != null) return r;
         }
         return null;
@@ -63,7 +63,7 @@ public class Tree<T> {
 
     /** Reemplaza el dato de un nodo sin tocar sus relaciones. El id debe conservarse. */
     public boolean modificar(String id, T nuevoDato) {
-        TreeNode<T> nodo = buscar(id);
+        NodoArbol<T> nodo = buscar(id);
         if (nodo == null || !idExtractor.apply(nuevoDato).equals(id)) return false;
         nodo.setData(nuevoDato);
         return true;
@@ -71,36 +71,36 @@ public class Tree<T> {
 
     /** Elimina un nodo solo si es hoja (y no es la raiz). */
     public boolean eliminar(String id) {
-        TreeNode<T> nodo = buscar(id);
+        NodoArbol<T> nodo = buscar(id);
         if (nodo == null || nodo == root || !nodo.isLeaf()) return false;
         return nodo.getParent().removeChild(nodo);
     }
 
     /** Elimina un nodo junto con todo su subarbol. */
     public boolean eliminarConDescendientes(String id) {
-        TreeNode<T> nodo = buscar(id);
+        NodoArbol<T> nodo = buscar(id);
         if (nodo == null || nodo == root) return false;
         return nodo.getParent().removeChild(nodo);
     }
 
     public List<T> hijos(String id) {
         List<T> r = new ArrayList<>();
-        TreeNode<T> nodo = buscar(id);
+        NodoArbol<T> nodo = buscar(id);
         if (nodo != null) {
-            for (TreeNode<T> h : nodo.getChildren()) r.add(h.getData());
+            for (NodoArbol<T> h : nodo.getChildren()) r.add(h.getData());
         }
         return r;
     }
 
     /** Devuelve el padre directo o null si es la raiz o no existe. */
     public T padre(String id) {
-        TreeNode<T> nodo = buscar(id);
+        NodoArbol<T> nodo = buscar(id);
         return (nodo == null || nodo.getParent() == null) ? null : nodo.getParent().getData();
     }
 
     /** Nivel del nodo: raiz = 0. Devuelve -1 si no existe. */
     public int nivel(String id) {
-        TreeNode<T> nodo = buscar(id);
+        NodoArbol<T> nodo = buscar(id);
         if (nodo == null) return -1;
         int nivel = 0;
         while (nodo.getParent() != null) {
@@ -120,10 +120,10 @@ public class Tree<T> {
         return altura(buscar(id));
     }
 
-    private int altura(TreeNode<T> nodo) {
+    private int altura(NodoArbol<T> nodo) {
         if (nodo == null) return -1;
         int max = -1;
-        for (TreeNode<T> h : nodo.getChildren()) max = Math.max(max, altura(h));
+        for (NodoArbol<T> h : nodo.getChildren()) max = Math.max(max, altura(h));
         return max + 1;
     }
 
@@ -139,20 +139,20 @@ public class Tree<T> {
         return r;
     }
 
-    private void preorden(TreeNode<T> nodo, List<T> r) {
+    private void preorden(NodoArbol<T> nodo, List<T> r) {
         if (nodo == null) return;
         r.add(nodo.getData());
-        for (TreeNode<T> h : nodo.getChildren()) preorden(h, r);
+        for (NodoArbol<T> h : nodo.getChildren()) preorden(h, r);
     }
 
     /** Recorrido por niveles: usa una cola, primero los nodos cercanos a la raiz. */
     public List<T> recorridoPorNiveles() {
         List<T> r = new ArrayList<>();
         if (root == null) return r;
-        Queue<TreeNode<T>> cola = new ArrayDeque<>();
+        Queue<NodoArbol<T>> cola = new ArrayDeque<>();
         cola.add(root);
         while (!cola.isEmpty()) {
-            TreeNode<T> n = cola.poll();
+            NodoArbol<T> n = cola.poll();
             r.add(n.getData());
             cola.addAll(n.getChildren());
         }
@@ -176,8 +176,8 @@ public class Tree<T> {
         return sb.toString();
     }
 
-    private void dibujar(TreeNode<T> nodo, String prefijo, StringBuilder sb, Function<T, String> etiqueta) {
-        List<TreeNode<T>> hijos = nodo.getChildren();
+    private void dibujar(NodoArbol<T> nodo, String prefijo, StringBuilder sb, Function<T, String> etiqueta) {
+        List<NodoArbol<T>> hijos = nodo.getChildren();
         for (int i = 0; i < hijos.size(); i++) {
             boolean ultimo = i == hijos.size() - 1;
             sb.append(prefijo).append(ultimo ? "└── " : "├── ")

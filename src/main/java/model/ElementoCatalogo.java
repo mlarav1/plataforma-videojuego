@@ -4,10 +4,10 @@ import java.util.Objects;
 
 /**
  * Elemento del catalogo jerarquico de la plataforma de videojuegos.
- * Cada nodo del arbol es una EntidadPrincipal: plataforma, categoria,
+ * Cada nodo del arbol es una ElementoCatalogo: plataforma, categoria,
  * genero, subgenero o videojuego.
  */
-public class EntidadPrincipal {
+public class ElementoCatalogo {
 
     public enum Tipo {
         PLATAFORMA, CATEGORIA, GENERO, SUBGENERO, VIDEOJUEGO
@@ -17,7 +17,7 @@ public class EntidadPrincipal {
     private String nombre;
     private Tipo tipo;
 
-    public EntidadPrincipal(String id, String nombre, Tipo tipo) {
+    public ElementoCatalogo(String id, String nombre, Tipo tipo) {
         this.id = id;
         this.nombre = nombre;
         this.tipo = tipo;
@@ -46,8 +46,8 @@ public class EntidadPrincipal {
     @Override
     public boolean equals(Object o) {
         if (this == o) return true;
-        if (!(o instanceof EntidadPrincipal)) return false;
-        return id.equals(((EntidadPrincipal) o).id);
+        if (!(o instanceof ElementoCatalogo)) return false;
+        return id.equals(((ElementoCatalogo) o).id);
     }
 
     @Override

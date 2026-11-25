@@ -7,13 +7,13 @@ import java.util.List;
  * Nodo de un arbol general: guarda un dato, una lista de hijos y
  * una referencia a su padre (null en la raiz).
  */
-public class TreeNode<T> {
+public class NodoArbol<T> {
 
     private T data;
-    private final List<TreeNode<T>> children = new ArrayList<>();
-    private TreeNode<T> parent;
+    private final List<NodoArbol<T>> children = new ArrayList<>();
+    private NodoArbol<T> parent;
 
-    public TreeNode(T data) {
+    public NodoArbol(T data) {
         this.data = data;
     }
 
@@ -25,15 +25,15 @@ public class TreeNode<T> {
         this.data = data;
     }
 
-    public List<TreeNode<T>> getChildren() {
+    public List<NodoArbol<T>> getChildren() {
         return children;
     }
 
-    public TreeNode<T> getParent() {
+    public NodoArbol<T> getParent() {
         return parent;
     }
 
-    public void setParent(TreeNode<T> parent) {
+    public void setParent(NodoArbol<T> parent) {
         this.parent = parent;
     }
 
@@ -41,12 +41,12 @@ public class TreeNode<T> {
         return children.isEmpty();
     }
 
-    public void addChild(TreeNode<T> child) {
+    public void addChild(NodoArbol<T> child) {
         child.setParent(this);
         children.add(child);
     }
 
-    public boolean removeChild(TreeNode<T> child) {
+    public boolean removeChild(NodoArbol<T> child) {
         boolean removed = children.remove(child);
         if (removed) child.setParent(null);
         return removed;

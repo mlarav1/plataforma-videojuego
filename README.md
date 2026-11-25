@@ -16,9 +16,17 @@ No dirigido y ponderado (peso = latencia en ms), con lista de adyacencia `Map<T,
 ## Integracion
 Cada jugador tiene un videojuego favorito (nodo del arbol), por lo que se puede consultar que jugadores pertenecen a un genero o categoria.
 
+## Clases
+- `model`: `ElementoCatalogo` (nodo del arbol), `Jugador` (vertice del grafo).
+- `tree`: `NodoArbol`, `ArbolGeneral`.
+- `graph`: `Conexion`, `GrafoPonderado`.
+- `service`: `PlataformaVideojuegos`.
+- `Main`: menu.
+
 ## Ejecucion
 ```
 javac -encoding UTF-8 -d bin (Get-ChildItem src -Recurse -Filter *.java).FullName
 java -cp bin Main
 ```
 Datos de prueba: 21 nodos en 5 niveles, 13 jugadores y 19 conexiones.
+

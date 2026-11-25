@@ -1,9 +1,9 @@
-import graph.Edge;
-import graph.Graph;
-import model.EntidadPrincipal;
-import model.EntidadPrincipal.Tipo;
-import model.EntidadRelacionada;
-import service.Sistema;
+import graph.Conexion;
+import graph.GrafoPonderado;
+import model.ElementoCatalogo;
+import model.ElementoCatalogo.Tipo;
+import model.Jugador;
+import service.PlataformaVideojuegos;
 
 import java.io.PrintStream;
 import java.util.List;
@@ -14,7 +14,7 @@ import java.util.Scanner;
 public class Main {
 
     private static final Scanner in = new Scanner(System.in);
-    private static final Sistema sistema = new Sistema();
+    private static final PlataformaVideojuegos sistema = new PlataformaVideojuegos();
 
     public static void main(String[] args) throws Exception {
         System.setOut(new PrintStream(System.out, true, "UTF-8"));
@@ -93,10 +93,10 @@ public class Main {
             case 15 -> comunidades();
             case 16 -> {
                 String id = leer("Id del genero/categoria/subgenero: ");
-                EntidadPrincipal e = sistema.buscarElemento(id);
+                ElementoCatalogo e = sistema.buscarElemento(id);
                 if (e == null) { System.out.println("No existe en el catalogo."); break; }
                 System.out.println("Jugadores cuyo juego favorito esta en '" + e.getNombre() + "':");
-                for (EntidadRelacionada j : sistema.jugadoresDeNodo(id)) {
+                for (Jugador j : sistema.jugadoresDeNodo(id)) {
                     System.out.println("  - " + j + " -> " + sistema.rutaJerarquica(j.getIdJuegoFavorito()));
                 }
             }
@@ -126,11 +126,11 @@ public class Main {
 
     private static void buscarElemento() {
         String id = leer("Id a buscar: ");
-        EntidadPrincipal e = sistema.buscarElemento(id);
+        ElementoCatalogo e = sistema.buscarElemento(id);
         if (e == null) { System.out.println("No se encontro '" + id + "'."); return; }
         System.out.println("Encontrado: " + e);
         System.out.println("Ruta: " + sistema.rutaJerarquica(id));
-        EntidadPrincipal padre = sistema.padreDe(id);
+        ElementoCatalogo padre = sistema.padreDe(id);
         System.out.println("Padre: " + (padre == null ? "ninguno (es la raiz)" : padre));
         System.out.println("Hijos directos: " + sistema.hijosDe(id));
     }
@@ -165,10 +165,10 @@ public class Main {
 
     private static void conexiones() {
         String id = leer("Id del jugador: ");
-        EntidadRelacionada j = sistema.buscarJugador(id);
+        Jugador j = sistema.buscarJugador(id);
         if (j == null) { System.out.println("No existe el jugador."); return; }
         System.out.println("Conexiones de " + j + " (grado " + sistema.gradoDe(id) + "):");
-        for (Edge<EntidadRelacionada> e : sistema.conexionesDe(id)) System.out.println("  - " + e);
+        for (Conexion<Jugador> e : sistema.conexionesDe(id)) System.out.println("  - " + e);
         String otro = leer("Id de otro jugador para verificar conexion directa (Enter para omitir): ");
         if (!otro.isEmpty()) {
             System.out.println(sistema.existeConexion(id, otro) ? "Si hay conexion directa." : "No hay conexion directa.");
@@ -177,10 +177,10 @@ public class Main {
 
     private static void bfs() {
         String id = leer("Id del jugador inicial: ");
-        Map<EntidadRelacionada, Integer> r = sistema.bfs(id);
+        Map<Jugador, Integer> r = sistema.bfs(id);
         if (r.isEmpty()) { System.out.println("No existe el jugador."); return; }
         int nivel = -1;
-        for (Map.Entry<EntidadRelacionada, Integer> e : r.entrySet()) {
+        for (Map.Entry<Jugador, Integer> e : r.entrySet()) {
             if (e.getValue() != nivel) {
                 nivel = e.getValue();
                 System.out.println("Nivel " + nivel + ":");
@@ -191,7 +191,7 @@ public class Main {
 
     private static void dfs() {
         String id = leer("Id del jugador inicial: ");
-        List<EntidadRelacionada> r = sistema.dfs(id);
+        List<Jugador> r = sistema.dfs(id);
         if (r.isEmpty()) { System.out.println("No existe el jugador."); return; }
         System.out.println("Orden DFS:");
         imprimirLista(r);
@@ -199,15 +199,15 @@ public class Main {
 
     private static void camino() {
         String a = leer("Jugador origen: "), b = leer("Jugador destino: ");
-        List<EntidadRelacionada> saltos = sistema.caminoMinimoSaltos(a, b);
+        List<Jugador> saltos = sistema.caminoMinimoSaltos(a, b);
         if (saltos == null) { System.out.println("No existe camino (o algun jugador no existe)."); return; }
         System.out.println("Menos conexiones (BFS, " + (saltos.size() - 1) + " saltos): " + nombres(saltos));
-        Graph.Ruta<EntidadRelacionada> r = sistema.rutaMenorLatencia(a, b);
+        GrafoPonderado.Ruta<Jugador> r = sistema.rutaMenorLatencia(a, b);
         System.out.println("Menor latencia (Dijkstra, " + r.costo + " ms): " + nombres(r.camino));
     }
 
     private static void comunidades() {
-        List<List<EntidadRelacionada>> cs = sistema.comunidades();
+        List<List<Jugador>> cs = sistema.comunidades();
         System.out.println("Comunidades encontradas: " + cs.size());
         for (int i = 0; i < cs.size(); i++) {
             System.out.println("  Comunidad " + (i + 1) + " (" + cs.get(i).size() + "): " + nombres(cs.get(i)));
@@ -220,10 +220,10 @@ public class Main {
         System.out.println("Elementos: " + sistema.totalElementos() + " | Altura: " + sistema.alturaCatalogo());
         System.out.println("--- RED DE JUGADORES ---");
         System.out.println("Jugadores: " + sistema.totalJugadores() + " | Conexiones: " + sistema.totalConexiones());
-        for (List<EntidadRelacionada> grupo : sistema.comunidades()) {
-            for (EntidadRelacionada j : grupo) {
+        for (List<Jugador> grupo : sistema.comunidades()) {
+            for (Jugador j : grupo) {
                 StringBuilder sb = new StringBuilder();
-                for (Edge<EntidadRelacionada> e : sistema.conexionesDe(j.getId())) {
+                for (Conexion<Jugador> e : sistema.conexionesDe(j.getId())) {
                     sb.append(e.getDestination().getNickname()).append('(').append((int) e.getWeight()).append(") ");
                 }
                 System.out.println("  " + j.getNickname() + " [" + sistema.rutaJerarquica(j.getIdJuegoFavorito()).replace("Plataforma de Videojuegos > ", "") + "] -> " + sb);
@@ -233,7 +233,7 @@ public class Main {
 
     // ---------- utilidades ----------
 
-    private static String nombres(List<EntidadRelacionada> l) {
+    private static String nombres(List<Jugador> l) {
         StringBuilder sb = new StringBuilder();
         for (int i = 0; i < l.size(); i++) {
             if (i > 0) sb.append(" -> ");

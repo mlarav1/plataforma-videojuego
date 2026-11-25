@@ -1,11 +1,11 @@
 package service;
 
-import graph.Edge;
-import graph.Graph;
-import model.EntidadPrincipal;
-import model.EntidadPrincipal.Tipo;
-import model.EntidadRelacionada;
-import tree.Tree;
+import graph.Conexion;
+import graph.GrafoPonderado;
+import model.ElementoCatalogo;
+import model.ElementoCatalogo.Tipo;
+import model.Jugador;
+import tree.ArbolGeneral;
 
 import java.util.ArrayList;
 import java.util.LinkedHashMap;
@@ -20,29 +20,29 @@ import java.util.stream.Collectors;
  *  - Grafo no dirigido y ponderado: red de jugadores (peso = latencia en ms).
  * La integracion: cada jugador referencia un videojuego del arbol como favorito.
  */
-public class Sistema {
+public class PlataformaVideojuegos {
 
-    private final Tree<EntidadPrincipal> catalogo = new Tree<>(EntidadPrincipal::getId);
-    private final Graph<EntidadRelacionada> red = new Graph<>(false);
-    private final Map<String, EntidadRelacionada> jugadores = new LinkedHashMap<>();
+    private final ArbolGeneral<ElementoCatalogo> catalogo = new ArbolGeneral<>(ElementoCatalogo::getId);
+    private final GrafoPonderado<Jugador> red = new GrafoPonderado<>(false);
+    private final Map<String, Jugador> jugadores = new LinkedHashMap<>();
 
     // ================= CATALOGO (ARBOL) =================
 
     public boolean registrarElemento(String idPadre, String id, String nombre, Tipo tipo) {
-        if (catalogo.isEmpty()) return catalogo.setRoot(new EntidadPrincipal(id, nombre, tipo));
-        return catalogo.insertar(idPadre, new EntidadPrincipal(id, nombre, tipo));
+        if (catalogo.isEmpty()) return catalogo.setRoot(new ElementoCatalogo(id, nombre, tipo));
+        return catalogo.insertar(idPadre, new ElementoCatalogo(id, nombre, tipo));
     }
 
-    public EntidadPrincipal buscarElemento(String id) {
+    public ElementoCatalogo buscarElemento(String id) {
         var nodo = catalogo.buscar(id);
         return nodo == null ? null : nodo.getData();
     }
 
-    public List<EntidadPrincipal> hijosDe(String id) {
+    public List<ElementoCatalogo> hijosDe(String id) {
         return catalogo.hijos(id);
     }
 
-    public EntidadPrincipal padreDe(String id) {
+    public ElementoCatalogo padreDe(String id) {
         return catalogo.padre(id);
     }
 
@@ -63,9 +63,9 @@ public class Sistema {
     }
 
     public boolean modificarNombre(String id, String nuevoNombre) {
-        EntidadPrincipal actual = buscarElemento(id);
+        ElementoCatalogo actual = buscarElemento(id);
         if (actual == null) return false;
-        return catalogo.modificar(id, new EntidadPrincipal(id, nuevoNombre, actual.getTipo()));
+        return catalogo.modificar(id, new ElementoCatalogo(id, nuevoNombre, actual.getTipo()));
     }
 
     /** Elimina solo si es hoja. */
@@ -81,31 +81,31 @@ public class Sistema {
         return catalogo.representacion(e -> e.getNombre() + " (" + e.getTipo() + ")");
     }
 
-    public List<EntidadPrincipal> recorridoProfundidad() {
+    public List<ElementoCatalogo> recorridoProfundidad() {
         return catalogo.recorridoProfundidad();
     }
 
-    public List<EntidadPrincipal> recorridoPorNiveles() {
+    public List<ElementoCatalogo> recorridoPorNiveles() {
         return catalogo.recorridoPorNiveles();
     }
 
     // ================= RED DE JUGADORES (GRAFO) =================
 
     public boolean registrarJugador(String id, String nickname, String pais, String idJuegoFavorito) {
-        EntidadPrincipal juego = buscarElemento(idJuegoFavorito);
+        ElementoCatalogo juego = buscarElemento(idJuegoFavorito);
         if (juego == null || juego.getTipo() != Tipo.VIDEOJUEGO) return false;
-        EntidadRelacionada j = new EntidadRelacionada(id, nickname, pais, idJuegoFavorito);
+        Jugador j = new Jugador(id, nickname, pais, idJuegoFavorito);
         if (!red.agregarVertice(j)) return false;
         jugadores.put(id, j);
         return true;
     }
 
-    public EntidadRelacionada buscarJugador(String id) {
+    public Jugador buscarJugador(String id) {
         return jugadores.get(id);
     }
 
     public boolean eliminarJugador(String id) {
-        EntidadRelacionada j = jugadores.get(id);
+        Jugador j = jugadores.get(id);
         if (j == null) return false;
         red.eliminarVertice(j);
         jugadores.remove(id);
@@ -113,52 +113,52 @@ public class Sistema {
     }
 
     public boolean crearConexion(String id1, String id2, double latencia) {
-        EntidadRelacionada a = jugadores.get(id1), b = jugadores.get(id2);
+        Jugador a = jugadores.get(id1), b = jugadores.get(id2);
         return a != null && b != null && red.agregarArista(a, b, latencia);
     }
 
     public boolean eliminarConexion(String id1, String id2) {
-        EntidadRelacionada a = jugadores.get(id1), b = jugadores.get(id2);
+        Jugador a = jugadores.get(id1), b = jugadores.get(id2);
         return a != null && b != null && red.eliminarArista(a, b);
     }
 
     public boolean existeConexion(String id1, String id2) {
-        EntidadRelacionada a = jugadores.get(id1), b = jugadores.get(id2);
+        Jugador a = jugadores.get(id1), b = jugadores.get(id2);
         return a != null && b != null && red.existeArista(a, b);
     }
 
-    public List<Edge<EntidadRelacionada>> conexionesDe(String id) {
-        EntidadRelacionada j = jugadores.get(id);
+    public List<Conexion<Jugador>> conexionesDe(String id) {
+        Jugador j = jugadores.get(id);
         return j == null ? new ArrayList<>() : red.vecinos(j);
     }
 
     public int gradoDe(String id) {
-        EntidadRelacionada j = jugadores.get(id);
+        Jugador j = jugadores.get(id);
         return j == null ? -1 : red.grado(j);
     }
 
-    public Map<EntidadRelacionada, Integer> bfs(String idInicio) {
-        EntidadRelacionada j = jugadores.get(idInicio);
+    public Map<Jugador, Integer> bfs(String idInicio) {
+        Jugador j = jugadores.get(idInicio);
         return j == null ? new LinkedHashMap<>() : red.bfs(j);
     }
 
-    public List<EntidadRelacionada> dfs(String idInicio) {
-        EntidadRelacionada j = jugadores.get(idInicio);
+    public List<Jugador> dfs(String idInicio) {
+        Jugador j = jugadores.get(idInicio);
         return j == null ? new ArrayList<>() : red.dfs(j);
     }
 
-    public List<EntidadRelacionada> caminoMinimoSaltos(String id1, String id2) {
-        EntidadRelacionada a = jugadores.get(id1), b = jugadores.get(id2);
+    public List<Jugador> caminoMinimoSaltos(String id1, String id2) {
+        Jugador a = jugadores.get(id1), b = jugadores.get(id2);
         return (a == null || b == null) ? null : red.caminoMinimoSaltos(a, b);
     }
 
-    public Graph.Ruta<EntidadRelacionada> rutaMenorLatencia(String id1, String id2) {
-        EntidadRelacionada a = jugadores.get(id1), b = jugadores.get(id2);
+    public GrafoPonderado.Ruta<Jugador> rutaMenorLatencia(String id1, String id2) {
+        Jugador a = jugadores.get(id1), b = jugadores.get(id2);
         return (a == null || b == null) ? null : red.rutaMenorCosto(a, b);
     }
 
     /** Funcionalidad especifica del grafo: comunidades de jugadores (componentes conexos). */
-    public List<List<EntidadRelacionada>> comunidades() {
+    public List<List<Jugador>> comunidades() {
         return red.componentesConexos();
     }
 
@@ -173,10 +173,10 @@ public class Sistema {
     // ================= INTEGRACION ARBOL + GRAFO =================
 
     /** Jugadores cuyo juego favorito pertenece al subarbol del nodo indicado (genero, categoria...). */
-    public List<EntidadRelacionada> jugadoresDeNodo(String idNodo) {
+    public List<Jugador> jugadoresDeNodo(String idNodo) {
         List<String> idsJuegos = catalogo.subarbol(idNodo).stream()
                 .filter(e -> e.getTipo() == Tipo.VIDEOJUEGO)
-                .map(EntidadPrincipal::getId)
+                .map(ElementoCatalogo::getId)
                 .collect(Collectors.toList());
         return jugadores.values().stream()
                 .filter(j -> idsJuegos.contains(j.getIdJuegoFavorito()))
@@ -186,7 +186,7 @@ public class Sistema {
     /** Ruta en la jerarquia del nodo: Plataforma > Categoria > Genero ... */
     public String rutaJerarquica(String id) {
         LinkedList<String> partes = new LinkedList<>();
-        EntidadPrincipal e = buscarElemento(id);
+        ElementoCatalogo e = buscarElemento(id);
         while (e != null) {
             partes.addFirst(e.getNombre());
             e = catalogo.padre(e.getId());

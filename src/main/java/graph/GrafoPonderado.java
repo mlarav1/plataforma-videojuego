@@ -15,10 +15,10 @@ import java.util.Queue;
 import java.util.Set;
 
 /**
- * Grafo implementado con lista de adyacencia: Map&lt;T, List&lt;Edge&lt;T&gt;&gt;&gt;.
+ * Grafo implementado con lista de adyacencia: Map&lt;T, List&lt;Conexion&lt;T&gt;&gt;&gt;.
  * Puede ser dirigido o no dirigido; las aristas siempre tienen peso.
  */
-public class Graph<T> {
+public class GrafoPonderado<T> {
 
     /** Resultado de una busqueda de ruta: camino y costo total. */
     public static class Ruta<T> {
@@ -31,10 +31,10 @@ public class Graph<T> {
         }
     }
 
-    private final Map<T, List<Edge<T>>> adyacencias = new LinkedHashMap<>();
+    private final Map<T, List<Conexion<T>>> adyacencias = new LinkedHashMap<>();
     private final boolean dirigido;
 
-    public Graph(boolean dirigido) {
+    public GrafoPonderado(boolean dirigido) {
         this.dirigido = dirigido;
     }
 
@@ -58,7 +58,7 @@ public class Graph<T> {
     public boolean eliminarVertice(T v) {
         if (!adyacencias.containsKey(v)) return false;
         adyacencias.remove(v);
-        for (List<Edge<T>> lista : adyacencias.values()) {
+        for (List<Conexion<T>> lista : adyacencias.values()) {
             lista.removeIf(e -> e.getDestination().equals(v));
         }
         return true;
@@ -78,8 +78,8 @@ public class Graph<T> {
     public boolean agregarArista(T origen, T destino, double peso) {
         if (!adyacencias.containsKey(origen) || !adyacencias.containsKey(destino)) return false;
         if (origen.equals(destino) || existeArista(origen, destino)) return false;
-        adyacencias.get(origen).add(new Edge<>(destino, peso));
-        if (!dirigido) adyacencias.get(destino).add(new Edge<>(origen, peso));
+        adyacencias.get(origen).add(new Conexion<>(destino, peso));
+        if (!dirigido) adyacencias.get(destino).add(new Conexion<>(origen, peso));
         return true;
     }
 
@@ -92,38 +92,38 @@ public class Graph<T> {
 
     /** Conexion directa origen -> destino. */
     public boolean existeArista(T origen, T destino) {
-        List<Edge<T>> lista = adyacencias.get(origen);
+        List<Conexion<T>> lista = adyacencias.get(origen);
         if (lista == null) return false;
-        for (Edge<T> e : lista) {
+        for (Conexion<T> e : lista) {
             if (e.getDestination().equals(destino)) return true;
         }
         return false;
     }
 
-    public List<Edge<T>> vecinos(T v) {
-        List<Edge<T>> lista = adyacencias.get(v);
+    public List<Conexion<T>> vecinos(T v) {
+        List<Conexion<T>> lista = adyacencias.get(v);
         return lista == null ? new ArrayList<>() : new ArrayList<>(lista);
     }
 
     /** Cantidad de aristas (en no dirigido cada conexion se cuenta una vez). */
     public int cantidadAristas() {
         int total = 0;
-        for (List<Edge<T>> l : adyacencias.values()) total += l.size();
+        for (List<Conexion<T>> l : adyacencias.values()) total += l.size();
         return dirigido ? total : total / 2;
     }
 
     // ---------- Grados ----------
 
     public int gradoSalida(T v) {
-        List<Edge<T>> l = adyacencias.get(v);
+        List<Conexion<T>> l = adyacencias.get(v);
         return l == null ? -1 : l.size();
     }
 
     public int gradoEntrada(T v) {
         if (!adyacencias.containsKey(v)) return -1;
         int n = 0;
-        for (List<Edge<T>> l : adyacencias.values()) {
-            for (Edge<T> e : l) if (e.getDestination().equals(v)) n++;
+        for (List<Conexion<T>> l : adyacencias.values()) {
+            for (Conexion<T> e : l) if (e.getDestination().equals(v)) n++;
         }
         return n;
     }
@@ -148,7 +148,7 @@ public class Graph<T> {
         cola.add(inicio);
         while (!cola.isEmpty()) {
             T actual = cola.poll();
-            for (Edge<T> e : adyacencias.get(actual)) {
+            for (Conexion<T> e : adyacencias.get(actual)) {
                 if (!niveles.containsKey(e.getDestination())) {
                     niveles.put(e.getDestination(), niveles.get(actual) + 1);
                     cola.add(e.getDestination());
@@ -169,7 +169,7 @@ public class Graph<T> {
             T actual = pila.pop();
             if (!visitados.add(actual)) continue;
             orden.add(actual);
-            List<Edge<T>> lista = adyacencias.get(actual);
+            List<Conexion<T>> lista = adyacencias.get(actual);
             // se apila al reves para visitar primero al primer vecino
             for (int i = lista.size() - 1; i >= 0; i--) {
                 if (!visitados.contains(lista.get(i).getDestination())) {
@@ -197,7 +197,7 @@ public class Graph<T> {
         while (!cola.isEmpty()) {
             T actual = cola.poll();
             if (actual.equals(destino)) break;
-            for (Edge<T> e : adyacencias.get(actual)) {
+            for (Conexion<T> e : adyacencias.get(actual)) {
                 if (visitados.add(e.getDestination())) {
                     previo.put(e.getDestination(), actual);
                     cola.add(e.getDestination());
@@ -221,7 +221,7 @@ public class Graph<T> {
             T actual = cola.poll().getKey();
             if (!cerrados.add(actual)) continue;
             if (actual.equals(destino)) break;
-            for (Edge<T> e : adyacencias.get(actual)) {
+            for (Conexion<T> e : adyacencias.get(actual)) {
                 double nueva = dist.get(actual) + e.getWeight();
                 if (nueva < dist.getOrDefault(e.getDestination(), Double.POSITIVE_INFINITY)) {
                     dist.put(e.getDestination(), nueva);

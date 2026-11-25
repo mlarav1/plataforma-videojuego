@@ -7,14 +7,14 @@ import java.util.Objects;
  * Su juego favorito referencia un videojuego (nodo del arbol), lo que
  * integra las dos estructuras en una sola aplicacion.
  */
-public class EntidadRelacionada {
+public class Jugador {
 
     private final String id;
     private String nickname;
     private String pais;
     private String idJuegoFavorito;
 
-    public EntidadRelacionada(String id, String nickname, String pais, String idJuegoFavorito) {
+    public Jugador(String id, String nickname, String pais, String idJuegoFavorito) {
         this.id = id;
         this.nickname = nickname;
         this.pais = pais;
@@ -52,8 +52,8 @@ public class EntidadRelacionada {
     @Override
     public boolean equals(Object o) {
         if (this == o) return true;
-        if (!(o instanceof EntidadRelacionada)) return false;
-        return id.equals(((EntidadRelacionada) o).id);
+        if (!(o instanceof Jugador)) return false;
+        return id.equals(((Jugador) o).id);
     }
 
     @Override
