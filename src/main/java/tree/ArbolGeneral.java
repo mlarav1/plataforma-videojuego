@@ -180,9 +180,9 @@ public class ArbolGeneral<T> {
         List<NodoArbol<T>> hijos = nodo.getChildren();
         for (int i = 0; i < hijos.size(); i++) {
             boolean ultimo = i == hijos.size() - 1;
-            sb.append(prefijo).append(ultimo ? "└── " : "├── ")
+            sb.append(prefijo).append(ultimo ? "\\-- " : "+-- ")
               .append(etiqueta.apply(hijos.get(i).getData())).append('\n');
-            dibujar(hijos.get(i), prefijo + (ultimo ? "    " : "│   "), sb, etiqueta);
+            dibujar(hijos.get(i), prefijo + (ultimo ? "    " : "|   "), sb, etiqueta);
         }
     }
 }
